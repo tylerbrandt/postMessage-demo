@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>postMessage Test</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<style>
+		#frame {
+			width: 800px;
+			height: 400px;
+		}
+
+		#target {
+			width: 200px;
+		}
+
+		label[for=messageContent], #messageContent {
+			display: none;
+		}
+		</style>
+	</head>
+	<body>
+		<h1>Send Message</h1>
+		<label for="selector">Selector</label>
+		<input type="text" id="selector" value="h1" />
+		<label for="property">Property</label>
+		<select id="property">
+			<option value="color" selected="selected">color</option>
+			<option value="font-size">font-size</option>
+			<option value="font-family">font-family</option>
+		</select>
+		<label for="value">Value</label>
+
+		<input type="text" id="value" />
+		<br/>
+		<label for="text">Content</label>
+		<input type="text" id="text" />
+		<br/>
+		<label for="messageContent">Message</label>
+		<textarea id="messageContent"></textarea>
+		<br/>
+
+		<label for="target">Target</label>
+		<input type="text" id="target" value="*"/>
+		<br/>
+		<input type="button" id="sendMessage" value="Send Message" />
+
+		<h1>Messages from Inner:</h1>
+		<div id="messageResults"></div>
+		<iframe id="frame" src="http://localhost:8080/frame.html"></iframe>
+
+		<script>
+		// set target to iframe src
+		if(document.location.protocol !== "file:") {
+			$("#target").val($("#frame").attr("src"));	
+		}
+
+		$("#sendMessage").click(function() {
+			var frameWindow = $("#frame").get(0).contentWindow,
+				selector = $("#selector").val(),
+				prop = $("#property").val(),
+				value = $("#value").val(),
+				text = $("#text").val(),
+				origin = $("#target").val(),
+				message = {
+					selector: selector
+				};
+
+			if(prop.length !== 0 && value.length !== 0) {
+				message.prop = prop;
+				message.value = value;
+			}
+			if(text.length !== 0) {
+				message.text = text;
+			}
+
+			$("#messageContent").val(JSON.stringify(message));
+			frameWindow.postMessage(message, origin);
+		});
+
+		$(window).on("message", function(event) {
+			var orig = event.originalEvent;
+			$("#messageResults").append("<li>" + orig.origin + ":" + JSON.stringify(orig.data) + "</li>");
+		});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Origin Frame</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<style>
+
+		#fixture {
+			border: 1px solid black;
+		}
+		</style>
+	</head>
+	<body>
+		<h1>Messages from Outer:</h1>
+		<ul id="frameMessages"></ul>
+
+		<!-- fixture -->
+		<h1>Fixture</h1>
+		<div id="fixture">
+			<h1>L1 Header</h1>
+			<h2>L2 Header</h2>
+			<p>Paragraph 1</p>
+			<p>Paragraph 2</p>
+		</div>
+
+		<script>
+		$(window).on("message", function(event) {
+			var orig = event.originalEvent,
+				msg = orig.data,
+				selector = msg.selector,
+				// scope the selector to the fixture element
+				elem = $(selector, "#fixture"),
+				effect = false,
+				respType = "UNKNOWN ERROR";
+			$("#frameMessages").append("<li>" + orig.origin + ":" + JSON.stringify(msg) + "</li>");
+
+			if(elem.length > 0) {
+				respType = "NO EFFECT";
+
+				if("prop" in msg && "value" in msg) {
+					elem.css(msg.prop, msg.value);	
+					effect = true;
+				}
+				if("text" in msg) {
+					elem.text(msg.text);
+					effect = true;	
+				}
+
+				if(effect) {
+				// understood the message
+					respType = "ACK";
+				}
+			} else {
+				respType = "NO ELEMENT";
+			}
+
+			
+
+			orig.source.postMessage({
+				type: respType,
+				message: msg,
+				me: document.location.href
+			}, "*");
+		});
+		</script>
+	</body>
+</html>
